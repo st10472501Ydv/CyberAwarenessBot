@@ -11,6 +11,9 @@ namespace CyberAwarenessBot
             greeting.PlayGreeting();
 
             AsciiArt.DisplayLogo();
+
+            ChatBot bot = new ChatBot();
+            bot.StartChat();
         }
     }
 }

@@ -9,7 +9,7 @@ namespace CyberAwarenessBot.Services
         public void PlayGreeting()
         {
             string audioPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "assets", "greeting.wav");
-
+                
             if (File.Exists(audioPath))
             {
                 using (SoundPlayer player = new SoundPlayer(audioPath))
