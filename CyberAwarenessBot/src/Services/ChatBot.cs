@@ -12,7 +12,7 @@
 
             // Personalised welcome message
             Console.WriteLine($"\n  Welcome, {userName}!");
-            Console.WriteLine($"  Its great to have you here.");
+            Console.WriteLine($"  Its great to have you here {userName}");
             Console.WriteLine("  I'm your Cybersecurity Awareness Bot.");
             Console.WriteLine("  Type 'help' to see what I can assist you with.\n");
         }
