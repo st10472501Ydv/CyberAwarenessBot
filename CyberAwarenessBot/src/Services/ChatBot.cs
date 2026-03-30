@@ -1,4 +1,6 @@
-﻿namespace CyberAwarenessBot.Services
+﻿using CyberAwarenessBot.UI;
+
+namespace CyberAwarenessBot.Services
 {
     public class ChatBot
     {
@@ -9,11 +11,13 @@
             Console.Write("Please enter your name: ");
             userName = Console.ReadLine();
 
-            Console.WriteLine($"\nWelcome, {userName}.");
-            Console.WriteLine($"Hello, {userName}.");
-            Console.WriteLine("Cybersecurity Awareness Bot.");
-            Console.WriteLine("Type 'help' for options.");
-            Console.WriteLine("Type 'exit' to quit.\n");
+            ConsoleHelper.PrintDivider();
+            ConsoleHelper.TypeWrite($"Welcome, {userName}.", ConsoleColor.White);
+            ConsoleHelper.TypeWrite($"Hello, {userName}.", ConsoleColor.White);
+            ConsoleHelper.TypeWrite("Cybersecurity Awareness Bot.", ConsoleColor.Cyan);
+            ConsoleHelper.TypeWrite("Type 'help' for options.", ConsoleColor.White);
+            ConsoleHelper.TypeWrite("Type 'exit' to quit.", ConsoleColor.White);
+            ConsoleHelper.PrintDivider();
 
             StartConversation();
         }
@@ -29,53 +33,70 @@
 
                 if (input.Contains("how are you"))
                 {
-                    Console.WriteLine("\nBot: Ready to assist.");
+                    ConsoleHelper.PrintDivider();
+                    ConsoleHelper.TypeWrite("Ready to assist.", ConsoleColor.Cyan);
+                    ConsoleHelper.PrintDivider();
                 }
                 else if (input.Contains("purpose") || input.Contains("what do you do"))
                 {
-                    Console.WriteLine("\nBot: Cybersecurity Awareness Bot.");
-                    Console.WriteLine("Provides information on online safety.");
+                    ConsoleHelper.PrintDivider();
+                    ConsoleHelper.TypeWrite("Cybersecurity Awareness Bot.", ConsoleColor.Cyan);
+                    ConsoleHelper.TypeWrite("Provides information on online safety.", ConsoleColor.White);
+                    ConsoleHelper.PrintDivider();
                 }
                 else if (input.Contains("what can i ask") || input.Contains("help"))
                 {
-                    Console.WriteLine("\nYou can ask about:");
-                    Console.WriteLine("- Password safety");
-                    Console.WriteLine("- Phishing scams");
-                    Console.WriteLine("- Safe browsing");
+                    ConsoleHelper.PrintDivider();
+                    ConsoleHelper.TypeWrite("You can ask about:", ConsoleColor.White);
+                    ConsoleHelper.TypeWrite("- Password safety", ConsoleColor.White);
+                    ConsoleHelper.TypeWrite("- Phishing scams", ConsoleColor.White);
+                    ConsoleHelper.TypeWrite("- Safe browsing", ConsoleColor.White);
+                    ConsoleHelper.PrintDivider();
                 }
                 else if (input.Contains("password"))
                 {
-                    Console.WriteLine("\nPassword Safety Tips:");
-                    Console.WriteLine("- Use at least 12 characters");
-                    Console.WriteLine("- Mix letters, numbers and symbols");
-                    Console.WriteLine("- Do not reuse passwords across sites");
-                    Console.WriteLine("- Consider using a password manager");
+                    ConsoleHelper.PrintDivider();
+                    ConsoleHelper.TypeWrite("Password Safety Tips:", ConsoleColor.Cyan);
+                    ConsoleHelper.TypeWrite("- Use at least 12 characters", ConsoleColor.White);
+                    ConsoleHelper.TypeWrite("- Mix letters, numbers and symbols", ConsoleColor.White);
+                    ConsoleHelper.TypeWrite("- Do not reuse passwords across sites", ConsoleColor.White);
+                    ConsoleHelper.TypeWrite("- Consider using a password manager", ConsoleColor.White);
+                    ConsoleHelper.PrintDivider();
                 }
                 else if (input.Contains("phishing"))
                 {
-                    Console.WriteLine("\nPhishing Awareness:");
-                    Console.WriteLine("- Phishing emails may pretend to be from banks or trusted brands");
-                    Console.WriteLine("- Do not click suspicious links in emails");
-                    Console.WriteLine("- Check the sender's email address");
-                    Console.WriteLine("- When in doubt, contact the organisation directly");
+                    ConsoleHelper.PrintDivider();
+                    ConsoleHelper.TypeWrite("Phishing Awareness:", ConsoleColor.Cyan);
+                    ConsoleHelper.TypeWrite("- Phishing emails may pretend to be from banks or trusted brands", ConsoleColor.White);
+                    ConsoleHelper.TypeWrite("- Do not click suspicious links in emails", ConsoleColor.White);
+                    ConsoleHelper.TypeWrite("- Check the sender's email address", ConsoleColor.White);
+                    ConsoleHelper.TypeWrite("- When in doubt, contact the organisation directly", ConsoleColor.White);
+                    ConsoleHelper.PrintDivider();
                 }
                 else if (input.Contains("safe browsing") || input.Contains("browsing"))
                 {
-                    Console.WriteLine("\nSafe Browsing Tips:");
-                    Console.WriteLine("- Look for HTTPS in the website address");
-                    Console.WriteLine("- Avoid clicking pop-up ads");
-                    Console.WriteLine("- Keep your browser updated");
-                    Console.WriteLine("- Do not download files from untrusted websites");
+                    ConsoleHelper.PrintDivider();
+                    ConsoleHelper.TypeWrite("Safe Browsing Tips:", ConsoleColor.Cyan);
+                    ConsoleHelper.TypeWrite("- Look for HTTPS in the website address", ConsoleColor.White);
+                    ConsoleHelper.TypeWrite("- Avoid clicking pop-up ads", ConsoleColor.White);
+                    ConsoleHelper.TypeWrite("- Keep your browser updated", ConsoleColor.White);
+                    ConsoleHelper.TypeWrite("- Do not download files from untrusted websites", ConsoleColor.White);
+                    ConsoleHelper.PrintDivider();
                 }
                 else if (input == "exit")
                 {
-                    Console.WriteLine($"\nGoodbye {userName}. Stay safe online.");
+                    ConsoleHelper.PrintDivider();
+                    ConsoleHelper.TypeWrite($"Goodbye {userName}.", ConsoleColor.White);
+                    ConsoleHelper.TypeWrite("Stay safe online.", ConsoleColor.White);
+                    ConsoleHelper.PrintDivider();
                     break;
                 }
                 else
                 {
-                    Console.WriteLine("\nI did not understand that. Please rephrase.");
-                    Console.WriteLine("Type 'help' for options.");
+                    ConsoleHelper.PrintDivider();
+                    ConsoleHelper.TypeWrite("I did not understand that. Please rephrase.", ConsoleColor.White);
+                    ConsoleHelper.TypeWrite("Type 'help' for options.", ConsoleColor.White);
+                    ConsoleHelper.PrintDivider();
                 }
             }
         }
