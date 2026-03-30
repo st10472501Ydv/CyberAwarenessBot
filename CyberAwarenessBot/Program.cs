@@ -1,4 +1,5 @@
 ﻿using CyberAwarenessBot.UI;
+using CyberAwarenessBot.Services;
 
 namespace CyberAwarenessBot
 {
@@ -6,6 +7,9 @@ namespace CyberAwarenessBot
     {
         static void Main(string[] args)
         {
+            VoiceGreeting greeting = new VoiceGreeting();
+            greeting.PlayGreeting();
+
             AsciiArt.DisplayLogo();
         }
     }
