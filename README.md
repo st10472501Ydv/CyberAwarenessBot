@@ -57,8 +57,8 @@ The workflow builds the project automatically on every push to check for errors.
 
 **CI Build Screenshot**
 
-![CI Green](assets/ci-screenshot1.png)
-![CI Green](assets/ci-screenshot2.png)
+![CI Green](ci-screenshots/ci-screenshot1.png)
+![CI Green](ci-screenshots/ci-screenshot2.png)
 
 ---
 
@@ -70,6 +70,9 @@ Link: [replace with your YouTube link]
 ## Project Structure
 ```
 CyberAwarenessBot/
+├── ci-screenshots/
+│   ├── ci-screenshot1.png
+│   └── ci-screenshots/
 ├── src/
 │   ├── Services/
 │   │   ├── VoiceGreeting.cs
@@ -78,9 +81,7 @@ CyberAwarenessBot/
 │       ├── AsciiArt.cs
 │       └── ConsoleHelper.cs
 ├── assets/
-│   ├── greeting.wav
-│   └── ci-screenshot1.png
-|   ----ci-screenshot2.png
+│   └── greeting.wav
 ├── .github/
 │   └── workflows/
 │       └── ci.yml
