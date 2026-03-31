@@ -14,7 +14,7 @@ The bot covers topics like phishing, password safety, and safe browsing through 
 
 **Requirements**
 - Windows PC
-- .NET 10 SDK installed — https://dotnet.microsoft.com/download/dotnet/8
+- .NET 10 SDK installed — https://dotnet.microsoft.com/download/dotnet/10
 
 **Steps**
 
@@ -57,7 +57,8 @@ The workflow builds the project automatically on every push to check for errors.
 
 **CI Build Screenshot**
 
-![CI Green](assets/ci-screenshot.png)
+![CI Green](assets/ci-screenshot1.png)
+![CI Green](assets/ci-screenshot2.png)
 
 ---
 
