@@ -79,7 +79,8 @@ CyberAwarenessBot/
 │       └── ConsoleHelper.cs
 ├── assets/
 │   ├── greeting.wav
-│   └── ci-screenshot.png
+│   └── ci-screenshot1.png
+|   ----ci-screenshot2.png
 ├── .github/
 │   └── workflows/
 │       └── ci.yml
