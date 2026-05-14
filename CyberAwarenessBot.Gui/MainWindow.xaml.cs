@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Windows;
+using CyberAwarenessBot.Gui.Helpers;
+using CyberAwarenessBot.Gui.Services;
 
 namespace CyberAwarenessBot.Gui
 {
@@ -10,9 +12,26 @@ namespace CyberAwarenessBot.Gui
             InitializeComponent();
         }
 
-        private void Window_Loaded(object sender, RoutedEventArgs e)
+        private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            // ASCII art will be set here later
+            // 1. Display the ASCII logo
+            txtAsciiLogo.Text = AsciiArt.Logo;
+
+            // 2. Play the voice greeting
+            var greeting = new VoiceGreeting();
+            try
+            {
+                await greeting.PlayAsync();
+            }
+            catch (Exception)
+            {
+                // If audio fails for any reason, tell the user
+                AppendToChat("Bot: (Voice greeting unavailable)");
+            }
+
+            // 3. Welcome message
+            AppendToChat("Bot: Welcome! I am your Cybersecurity Awareness Assistant.");
+            AppendToChat("Bot: To begin, please tell me your name.");
         }
 
         private void BtnSend_Click(object sender, RoutedEventArgs e)
