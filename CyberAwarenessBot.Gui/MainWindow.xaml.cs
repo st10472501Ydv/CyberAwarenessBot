@@ -61,22 +61,28 @@ namespace CyberAwarenessBot.Gui
 
             AppendToChat("You: " + input);
 
-            if (_waitingForName)
+            try
             {
-                // Capture the user's name
-                _userName = input;
-                _waitingForName = false;
-
-                _chatService = new ChatService(_userName);
-
-                AppendToChat($"Bot: Nice to meet you, {_userName}!");
-                AppendToChat("Bot: You can ask me about password safety, phishing, scams, privacy, or safe browsing.");
-                AppendToChat("Bot: Type 'help' for options, or just ask a question.");
+                if (_waitingForName)
+                {
+                    _userName = input;
+                    _waitingForName = false;
+                    _chatService = new ChatService(_userName);
+                    AppendToChat($"Bot: Nice to meet you, {_userName}!");
+                    AppendToChat("Bot: You can ask me about password safety, phishing, scams, privacy, or safe browsing.");
+                    AppendToChat("Bot: Type 'help' for options, or just ask a question.");
+                }
+                else if (_chatService != null)
+                {
+                    string reply = _chatService.GetResponse(input);
+                    AppendToChat("Bot: " + reply);
+                }
             }
-            else if (_chatService != null)
+            catch (Exception ex)
             {
-                string reply = _chatService.GetResponse(input);
-                AppendToChat("Bot: " + reply);
+                // Log the real error for debugging, but show a friendly message to the user
+                System.Diagnostics.Debug.WriteLine($"Chat error: {ex}");
+                AppendToChat("Bot: Oops! Something went wrong. Please try again.");
             }
 
             txtUserInput.Clear();

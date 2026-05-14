@@ -7,6 +7,13 @@
     {
         public static string DetectAndRespond(string input, string userName, out bool sentimentDetected, out string detectedTopic)
         {
+
+            if (string.IsNullOrWhiteSpace(input)) //catches nulls to set sentiment as false
+            {
+                sentimentDetected = false;
+                detectedTopic = "";
+                return string.Empty;
+            }
             sentimentDetected = false;
             detectedTopic = "";
 
