@@ -44,8 +44,12 @@
                 <TextBox x:Name="txtUserInput" 
                          Background="#16213E" Foreground="White" 
                          BorderBrush="#1A1A2E" FontSize="14"
+                         IsEnabled="False"
                          KeyDown="txtUserInput_KeyDown"/>
-                <Button Grid.Column="1" Content="Send" Click="BtnSend_Click"/>
+                <Button x:Name="btnSend" Grid.Column="1" Content="Send" 
+                        Click="BtnSend_Click"
+                        IsEnabled="False"
+                        ToolTip="Wait for welcome sequence"/>
             </Grid>
         </Border>
     </Grid>
