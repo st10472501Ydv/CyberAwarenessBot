@@ -62,6 +62,17 @@ namespace CyberAwarenessBot.Gui.Services
             if (string.IsNullOrWhiteSpace(userInput))
                 return "I didn't quite catch that. Could you repeat?";
 
+            // ---- Sentiment detection (before keywords) ----
+            string sentimentResponse = SentimentAnalyzer.DetectAndRespond(
+                userInput, _userName,
+                out bool sentimentDetected, out string sentimentTopic);
+
+            if (sentimentDetected)
+            {
+                _lastTopic = sentimentTopic; // so follow‑ups like "tell me more" work
+                return sentimentResponse;
+            }
+
             // ---- General / built‑in commands ----
             string lower = userInput.ToLower();
 
