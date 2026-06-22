@@ -17,8 +17,8 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - name: Restore dependencies
-        run: dotnet restore CyberAwarenessBot/CyberAwarenessBot.csproj
+      - name: Restore dependencies (GUI)
+        run: dotnet restore CyberAwarenessBot.Gui/CyberAwarenessBot.Gui.csproj
 
-      - name: Build
-        run: dotnet build CyberAwarenessBot/CyberAwarenessBot.csproj --no-restore
+      - name: Build GUI
+        run: dotnet build CyberAwarenessBot.Gui/CyberAwarenessBot.Gui.csproj --no-restore

@@ -1,30 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
+using CyberAwarenessBot.Gui.Models;
 
 namespace CyberAwarenessBot.Gui.Services
 {
-    /// <summary>
-    /// Provides chatbot response logic using keyword-based topic matching,
-    /// random response selection, conversation flow, and memory recall.
-    /// </summary>
     public class ChatService
     {
         private readonly string _userName;
+        private readonly DatabaseService _db;
+        private readonly ActivityLog _log;
         private readonly Dictionary<string, List<string>> _keywordResponses;
-        private readonly Random _rng = new Random();
-
+        private readonly Random _rng = new();
         private string _lastTopic = "";
         private string _favouriteTopic = "";
 
-        /// <summary>
-        /// Initialises a new instance of <see cref="ChatService"/> with the given user name
-        /// and populates the keyword–response dictionary for cybersecurity topics.
-        /// </summary>
-        /// <param name="userName">The name of the user interacting with the chatbot.</param>
-        public ChatService(string userName)
+        public QuizGame? ActiveQuiz { get; private set; }
+
+        public ChatService(string userName, DatabaseService db, ActivityLog log)
         {
             _userName = userName;
+            _db = db;
+            _log = log;
             _keywordResponses = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase)
             {
                 { "password", new List<string>
@@ -65,15 +63,9 @@ namespace CyberAwarenessBot.Gui.Services
             };
         }
 
-        /// <summary>
-        /// Processes the user's input and returns an appropriate chatbot response.
-        /// Checks sentiment first, then built-in commands, follow-ups, keyword matches,
-        /// and finally falls back to a default message.
-        /// </summary>
-        /// <param name="userInput">The raw text entered by the user.</param>
-        /// <returns>A response string from the chatbot.</returns>
-        public string GetResponse(string userInput)
+        public string GetResponse(string userInput, out bool quizMode)
         {
+            quizMode = false;
             if (string.IsNullOrWhiteSpace(userInput))
                 return "I didn't quite catch that. Could you repeat?";
 
@@ -84,15 +76,24 @@ namespace CyberAwarenessBot.Gui.Services
             if (sentimentDetected)
             {
                 _lastTopic = sentimentTopic;
+                _log.Add($"Sentiment detected: {sentimentTopic}");
                 return sentimentResponse;
             }
 
-            string lower = userInput.ToLower();
+            string lower = userInput.ToLower().Trim();
+
+            var nlpResult = ProcessNlpCommand(lower, userInput);
+            if (nlpResult != null)
+                return nlpResult;
 
             if (lower.Contains("help") || lower.Contains("what can i ask"))
             {
                 return "I can help with password safety, phishing, scams, privacy, and safe browsing. " +
-                       "You can also say 'another tip' or 'tell me more'.";
+                       "You can also:\n" +
+                       "- 'add task: <title>' to create a cybersecurity task\n" +
+                       "- 'show tasks' to view your tasks\n" +
+                       "- 'start quiz' to test your knowledge\n" +
+                       "- 'show log' to see recent activity";
             }
             if (lower.Contains("purpose") || lower.Contains("what do you do"))
             {
@@ -106,19 +107,14 @@ namespace CyberAwarenessBot.Gui.Services
             if (IsFollowUp(lower, "another tip", "another", "more tips"))
             {
                 if (!string.IsNullOrEmpty(_lastTopic) && _keywordResponses.ContainsKey(_lastTopic))
-                {
-                    var tips = _keywordResponses[_lastTopic];
-                    return tips[_rng.Next(tips.Count)];
-                }
+                    return _keywordResponses[_lastTopic][_rng.Next(_keywordResponses[_lastTopic].Count)];
                 return "What topic would you like another tip on?";
             }
 
             if (lower.Contains("tell me more") || lower.Contains("explain more"))
             {
                 if (!string.IsNullOrEmpty(_lastTopic))
-                {
                     return GetDetailedExplanation(_lastTopic);
-                }
                 return "Which topic would you like me to explain further?";
             }
 
@@ -127,14 +123,13 @@ namespace CyberAwarenessBot.Gui.Services
                 if (lower.IndexOf(kvp.Key, StringComparison.OrdinalIgnoreCase) >= 0)
                 {
                     _lastTopic = kvp.Key;
-
                     if (lower.Contains("interest") || lower.Contains("like") || lower.Contains("favourite"))
                     {
                         _favouriteTopic = kvp.Key;
+                        _log.Add($"User interested in topic: {kvp.Key}");
                         return $"Great! I'll remember that you're interested in {kvp.Key}. " +
                                kvp.Value[_rng.Next(kvp.Value.Count)];
                     }
-
                     return kvp.Value[_rng.Next(kvp.Value.Count)];
                 }
             }
@@ -148,22 +143,227 @@ namespace CyberAwarenessBot.Gui.Services
             return "I'm not sure I understand. Could you rephrase? Type 'help' for options.";
         }
 
-        /// <summary>
-        /// Checks whether the user input contains any of the specified follow-up phrases.
-        /// </summary>
-        /// <param name="input">The lowercased user input.</param>
-        /// <param name="phrases">One or more phrases to look for.</param>
-        /// <returns>True if any phrase is found in the input.</returns>
+        private string? ProcessNlpCommand(string lower, string raw)
+        {
+            if (string.IsNullOrWhiteSpace(lower)) return null;
+
+            if (MatchCommand(lower, "start quiz", "play quiz", "take quiz", "begin quiz"))
+            {
+                ActiveQuiz = new QuizGame();
+                var q = ActiveQuiz.Start();
+                _log.Add("Quiz started");
+                return $"Quiz started! Question {ActiveQuiz.CurrentQuestionNumber} of {ActiveQuiz.TotalQuestions}:\n\n{q.Question}\n\n" +
+                       string.Join("\n", q.Options.Select((opt, i) => $"{i + 1}. {opt}")) +
+                       "\n\nReply with the number of your answer.";
+            }
+
+            if (ActiveQuiz?.IsActive == true && int.TryParse(lower.Trim(), out int answerIndex))
+            {
+                if (answerIndex < 1 || answerIndex > ActiveQuiz.CurrentQuestion?.Options.Count)
+                    return $"Please enter a number between 1 and {ActiveQuiz.CurrentQuestion?.Options.Count}.";
+
+                var (correct, explanation, isComplete) = ActiveQuiz.Answer(answerIndex - 1);
+                if (correct)
+                {
+                    var next = ActiveQuiz.CurrentQuestion;
+                    _log.Add($"Quiz: correct answer on Q{ActiveQuiz.CurrentQuestionNumber - 1}");
+                    if (isComplete)
+                    {
+                        string msg = $"Correct! {explanation}\n\n" + ActiveQuiz.GetScoreMessage();
+                        _log.Add($"Quiz completed: score {ActiveQuiz.Score}/{ActiveQuiz.TotalQuestions}");
+                        ActiveQuiz = null;
+                        return msg;
+                    }
+                    return $"Correct! {explanation}\n\nNext question ({ActiveQuiz.CurrentQuestionNumber}/{ActiveQuiz.TotalQuestions}):\n{next!.Question}\n\n" +
+                           string.Join("\n", next.Options.Select((opt, i) => $"{i + 1}. {opt}"));
+                }
+                else
+                {
+                    var next = ActiveQuiz.CurrentQuestion;
+                    _log.Add($"Quiz: incorrect answer on Q{ActiveQuiz.CurrentQuestionNumber - 1}");
+                    if (isComplete)
+                    {
+                        string msg = $"Incorrect. {explanation}\n\n" + ActiveQuiz.GetScoreMessage();
+                        _log.Add($"Quiz completed: score {ActiveQuiz.Score}/{ActiveQuiz.TotalQuestions}");
+                        ActiveQuiz = null;
+                        return msg;
+                    }
+                    return $"Incorrect. {explanation}\n\nNext question ({ActiveQuiz.CurrentQuestionNumber}/{ActiveQuiz.TotalQuestions}):\n{next!.Question}\n\n" +
+                           string.Join("\n", next.Options.Select((opt, i) => $"{i + 1}. {opt}"));
+                }
+            }
+
+            if (MatchCommand(lower, "show log", "activity log", "what have you done", "show activity", "recent action"))
+            {
+                var entries = _log.GetRecent(10);
+                if (entries.Count == 0)
+                    return "No activity recorded yet.";
+                var lines = entries.Select((e, i) => $"  {i + 1}. [{e.Timestamp:yyyy-MM-dd HH:mm}] {e.Description}");
+                return $"Here's a summary of recent actions:\n{string.Join("\n", lines)}";
+            }
+
+            if (MatchCommand(lower, "show more log", "full log", "show all log"))
+            {
+                var entries = _log.GetAll();
+                if (entries.Count == 0)
+                    return "No activity recorded yet.";
+                var lines = entries.Select((e, i) => $"  {i + 1}. [{e.Timestamp:yyyy-MM-dd HH:mm}] {e.Description}");
+                return $"Full activity log:\n{string.Join("\n", lines)}";
+            }
+
+            if (MatchCommand(lower, "show task", "list task", "my task", "view task", "show all task"))
+            {
+                var tasks = _db.GetAllTasks();
+                if (tasks.Count == 0)
+                    return "You have no tasks yet. Type 'add task: <title>' to create one.";
+                var lines = tasks.Select((t, i) =>
+                    $"  {i + 1}. [{(t.IsCompleted ? "✓" : "○")}] ID:{t.Id} {t.Title}" +
+                    (t.ReminderDate.HasValue ? $" (reminder: {t.ReminderDate:yyyy-MM-dd})" : ""));
+                return $"Your cybersecurity tasks:\n{string.Join("\n", lines)}\n\nUse 'complete task <id>' or 'delete task <id>' to manage them.";
+            }
+
+            var addMatch = Regex.Match(lower, @"^add\s+task\s*:?\s*(.+?)(?:[,;]\s*remind\s+(?:me\s+)?(?:in|on)\s+(.+))?$");
+            if (addMatch.Success || lower.StartsWith("add task"))
+            {
+                string title;
+                string? reminderText = null;
+
+                if (addMatch.Success)
+                {
+                    title = addMatch.Groups[1].Value.Trim();
+                    reminderText = addMatch.Groups[2].Success ? addMatch.Groups[2].Value.Trim() : null;
+                }
+                else
+                {
+                    title = lower["add task".Length..].Trim().TrimStart(':').Trim();
+                }
+
+                if (string.IsNullOrEmpty(title))
+                    return "What task would you like to add? Try 'add task: Enable two-factor authentication'.";
+
+                var task = new CyberTask
+                {
+                    Title = Capitalize(title),
+                    Description = $"Cybersecurity task created by {_userName}",
+                    IsCompleted = false
+                };
+
+                if (reminderText != null)
+                {
+                    var reminderDays = ParseDays(reminderText);
+                    task.ReminderDate = DateTime.Now.AddDays(reminderDays);
+                }
+
+                task.Id = _db.AddTask(task);
+                _log.Add($"Task added: '{task.Title}'" + (task.ReminderDate.HasValue ? $" (reminder: {task.ReminderDate:yyyy-MM-dd})" : ""));
+
+                string response = $"Task added: '{task.Title}'.";
+                if (task.ReminderDate.HasValue)
+                    response += $" I'll remind you on {task.ReminderDate:yyyy-MM-dd}.";
+                else
+                    response += " Would you like to set a reminder? Type 'remind me in <N> days'.";
+                return response;
+            }
+
+            var remindMatch = Regex.Match(lower, @"^remind\s+(?:me\s+)?(?:in|on)\s+(.+?)(?:\s+to\s+(.+))?$");
+            if (remindMatch.Success)
+            {
+                var tasks = _db.GetAllTasks().Where(t => !t.IsCompleted).ToList();
+                if (tasks.Count == 0)
+                    return "You don't have any pending tasks to set a reminder for.";
+
+                string timeStr = remindMatch.Groups[1].Value.Trim();
+                string? actionText = remindMatch.Groups[2].Success ? remindMatch.Groups[2].Value.Trim() : null;
+                int days = ParseDays(timeStr);
+                var task = tasks.First();
+
+                if (actionText != null)
+                {
+                    task = new CyberTask
+                    {
+                        Title = Capitalize(actionText),
+                        Description = $"Reminder created by {_userName}",
+                        ReminderDate = DateTime.Now.AddDays(days),
+                        IsCompleted = false
+                    };
+                    task.Id = _db.AddTask(task);
+                    _log.Add($"Reminder set: '{task.Title}' on {task.ReminderDate:yyyy-MM-dd}");
+                    return $"Reminder set for '{task.Title}' on {task.ReminderDate:yyyy-MM-dd}.";
+                }
+
+                task.ReminderDate = DateTime.Now.AddDays(days);
+                _db.UpdateTask(task);
+                _log.Add($"Reminder updated for task '{task.Title}': {task.ReminderDate:yyyy-MM-dd}");
+                return $"Reminder set for '{task.Title}' on {task.ReminderDate:yyyy-MM-dd}.";
+            }
+
+            var completeMatch = Regex.Match(lower, @"^(?:mark\s+(?:as\s+)?)?complete\s+task\s*(?:#?\s*(\d+))?");
+            if (completeMatch.Success)
+            {
+                if (!completeMatch.Groups[1].Success)
+                    return "Which task would you like to mark as complete? Use 'complete task <id>'.";
+
+                int id = int.Parse(completeMatch.Groups[1].Value);
+                var tasks = _db.GetAllTasks();
+                var task = tasks.FirstOrDefault(t => t.Id == id);
+                if (task == null)
+                    return $"Task with ID {id} not found. Use 'show tasks' to see your tasks.";
+
+                task.IsCompleted = true;
+                _db.UpdateTask(task);
+                _log.Add($"Task completed: '{task.Title}'");
+                return $"Task '{task.Title}' marked as complete. Well done!";
+            }
+
+            var deleteMatch = Regex.Match(lower, @"^(?:delete|remove)\s+task\s*(?:#?\s*(\d+))?");
+            if (deleteMatch.Success)
+            {
+                if (!deleteMatch.Groups[1].Success)
+                    return "Which task would you like to delete? Use 'delete task <id>'.";
+
+                int id = int.Parse(deleteMatch.Groups[1].Value);
+                var tasks = _db.GetAllTasks();
+                var task = tasks.FirstOrDefault(t => t.Id == id);
+                if (task == null)
+                    return $"Task with ID {id} not found. Use 'show tasks' to see your tasks.";
+
+                _db.DeleteTask(id);
+                _log.Add($"Task deleted: '{task.Title}'");
+                return $"Task '{task.Title}' has been deleted.";
+            }
+
+            return null;
+        }
+
+        private bool MatchCommand(string lower, params string[] phrases)
+        {
+            return phrases.Any(p => lower.IndexOf(p, StringComparison.OrdinalIgnoreCase) >= 0);
+        }
+
         private bool IsFollowUp(string input, params string[] phrases)
         {
             return phrases.Any(p => input.IndexOf(p, StringComparison.OrdinalIgnoreCase) >= 0);
         }
 
-        /// <summary>
-        /// Returns a longer explanation for the given cybersecurity topic.
-        /// </summary>
-        /// <param name="topic">The topic key (e.g. "password", "phishing").</param>
-        /// <returns>A descriptive explanation string.</returns>
+        private int ParseDays(string text)
+        {
+            text = text.ToLower().Trim();
+            var match = Regex.Match(text, @"(\d+)");
+            if (!match.Success) return 7;
+
+            int num = int.Parse(match.Groups[1].Value);
+            if (text.Contains("day")) return num;
+            if (text.Contains("week")) return num * 7;
+            if (text.Contains("month")) return num * 30;
+            return num;
+        }
+
+        private string Capitalize(string s)
+        {
+            if (string.IsNullOrEmpty(s)) return s;
+            return char.ToUpper(s[0]) + s[1..];
+        }
+
         private string GetDetailedExplanation(string topic)
         {
             return topic switch
@@ -177,9 +377,7 @@ namespace CyberAwarenessBot.Gui.Services
             };
         }
 
-        /// <summary>Gets the last topic that was discussed.</summary>
         public string LastTopic => _lastTopic;
-        /// <summary>Gets the user's favourite or most-expressed-interest topic.</summary>
         public string FavouriteTopic => _favouriteTopic;
     }
 }

@@ -1,56 +1,238 @@
 ﻿<Window x:Class="CyberAwarenessBot.Gui.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="CyberAwareness Bot" Height="650" Width="800"
+        xmlns:conv="clr-namespace:CyberAwarenessBot.Gui.Converters"
+        Title="Cybersecurity Awareness Bot" Height="700" Width="850"
         WindowStartupLocation="CenterScreen" Loaded="Window_Loaded">
     <Window.Resources>
+        <conv:BoolToStatusConverter x:Key="BoolToStatusConverter"/>
+        <Style x:Key="TabHeaderStyle" TargetType="TabItem">
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Background" Value="#0F3460"/>
+            <Setter Property="Foreground" Value="#E0E0E0"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="14,6"/>
+        </Style>
         <Style TargetType="Button">
             <Setter Property="Background" Value="#1E90FF"/>
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="FontWeight" Value="Bold"/>
             <Setter Property="Padding" Value="12,6"/>
             <Setter Property="Margin" Value="5,0"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style TargetType="TextBlock" x:Key="SectionHeader">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="#00FFFF"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
         </Style>
     </Window.Resources>
     <Grid Background="#1A1A2E">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+        <TabControl x:Name="tabMain" Background="#1A1A2E" BorderThickness="0"
+                     SelectedIndex="0">
+            <TabControl.Resources>
+                <Style TargetType="TabPanel">
+                    <Setter Property="Background" Value="#0F3460"/>
+                </Style>
+            </TabControl.Resources>
 
-        <!-- ASCII Logo -->
-        <TextBlock x:Name="txtAsciiLogo" 
-                   FontFamily="Consolas" FontSize="14" 
-                   Foreground="#00FFFF" HorizontalAlignment="Center"
-                   TextAlignment="Center" Margin="0,10"/>
+            <!-- ========== TAB 1: CHAT ========== -->
+            <TabItem Header="&#x1F4AC; Chat" Style="{StaticResource TabHeaderStyle}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
 
-        <!-- Chat Display Area -->
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="10">
-            <TextBox x:Name="txtChatDisplay" 
-                     IsReadOnly="True" Background="#16213E" Foreground="#E0E0E0"
-                     BorderThickness="0" TextWrapping="Wrap" 
-                     FontFamily="Segoe UI" FontSize="13"
-                     VerticalScrollBarVisibility="Disabled"/>
-        </ScrollViewer>
+                    <TextBlock x:Name="txtAsciiLogo"
+                               FontFamily="Consolas" FontSize="14"
+                               Foreground="#00FFFF" HorizontalAlignment="Center"
+                               TextAlignment="Center" Margin="0,8"/>
 
-        <!-- Input Row -->
-        <Border Grid.Row="2" Background="#0F3460" Padding="10">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                <TextBox x:Name="txtUserInput" 
-                         Background="#16213E" Foreground="White" 
-                         BorderBrush="#1A1A2E" FontSize="14"
-                         IsEnabled="False"
-                         KeyDown="txtUserInput_KeyDown"/>
-                <Button x:Name="btnSend" Grid.Column="1" Content="Send" 
-                        Click="BtnSend_Click"
-                        IsEnabled="False"
-                        ToolTip="Wait for welcome sequence"/>
-            </Grid>
-        </Border>
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="10,0,10,0">
+                        <TextBox x:Name="txtChatDisplay"
+                                 IsReadOnly="True" Background="#16213E" Foreground="#E0E0E0"
+                                 BorderThickness="0" TextWrapping="Wrap"
+                                 FontFamily="Segoe UI" FontSize="13"
+                                 VerticalScrollBarVisibility="Disabled"/>
+                    </ScrollViewer>
+
+                    <Border Grid.Row="2" Background="#0F3460" Padding="10">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="txtUserInput"
+                                     Background="#16213E" Foreground="White"
+                                     BorderBrush="#1A1A2E" FontSize="14"
+                                     IsEnabled="False"
+                                     KeyDown="txtUserInput_KeyDown"/>
+                            <Button x:Name="btnSend" Grid.Column="1" Content="Send"
+                                    Click="BtnSend_Click"
+                                    IsEnabled="False"/>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </TabItem>
+
+            <!-- ========== TAB 2: TASKS ========== -->
+            <TabItem Header="&#x1F4CB; Tasks" Style="{StaticResource TabHeaderStyle}">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <ListView x:Name="lstTasks" Background="#16213E" Foreground="#E0E0E0"
+                              BorderThickness="1" BorderBrush="#0F3460"
+                              FontSize="13">
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn Header="Status" Width="60">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding IsCompleted, Converter={StaticResource BoolToStatusConverter}}"
+                                                       Foreground="#00FFFF" FontWeight="Bold"/>
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+                                <GridViewColumn Header="ID" Width="40" DisplayMemberBinding="{Binding Id}"/>
+                                <GridViewColumn Header="Title" Width="200" DisplayMemberBinding="{Binding Title}"/>
+                                <GridViewColumn Header="Reminder" Width="140" DisplayMemberBinding="{Binding ReminderDate, StringFormat={}{0:yyyy-MM-dd}}"/>
+                                <GridViewColumn Header="Actions" Width="180">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal">
+                                                <Button Content="Complete" Tag="{Binding Id}"
+                                                        Click="BtnCompleteTask_Click"
+                                                        Background="#32CD32" Margin="2,0"/>
+                                                <Button Content="Delete" Tag="{Binding Id}"
+                                                        Click="BtnDeleteTask_Click"
+                                                        Background="#FF4444" Margin="2,0"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+
+                    <Border Grid.Row="1" Background="#0F3460" Padding="10" Margin="0,10,0,0">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="txtTaskTitle" Background="#16213E" Foreground="White"
+                                         BorderBrush="#1A1A2E" FontSize="13"
+                                         ToolTip="Enter task title"/>
+                                <DatePicker x:Name="dpTaskReminder" Grid.Column="1"
+                                            Background="#16213E" Foreground="White"
+                                            BorderBrush="#1A1A2E" Margin="5,0"/>
+                                <Button x:Name="btnAddTask" Grid.Column="2" Content="Add Task"
+                                        Click="BtnAddTask_Click" Background="#1E90FF"/>
+                            </Grid>
+                            <TextBox x:Name="txtTaskDescription" Grid.Row="1"
+                                     Background="#16213E" Foreground="White"
+                                     BorderBrush="#1A1A2E" FontSize="12"
+                                     Margin="0,5,0,0" ToolTip="Description (optional)"/>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </TabItem>
+
+            <!-- ========== TAB 3: QUIZ ========== -->
+            <TabItem Header="&#x1F3AE; Quiz" Style="{StaticResource TabHeaderStyle}">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                        <TextBlock x:Name="txtQuizTitle" Text="Cybersecurity Quiz"
+                                   Style="{StaticResource SectionHeader}"/>
+                    </StackPanel>
+
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <TextBlock x:Name="txtQuizQuestion" Text="Press 'Start Quiz' to begin testing your cybersecurity knowledge!"
+                                       TextWrapping="Wrap" Foreground="#E0E0E0" FontSize="15"
+                                       Margin="0,0,0,15"/>
+
+                            <ItemsControl x:Name="quizOptionsPanel">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Button Content="{Binding Text}" Tag="{Binding Index}"
+                                                Click="BtnQuizAnswer_Click"
+                                                Background="#1E90FF" Margin="0,4"
+                                                HorizontalAlignment="Stretch"
+                                                FontSize="14" Padding="10,8"/>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
+                            <TextBlock x:Name="txtQuizFeedback" TextWrapping="Wrap"
+                                       Foreground="#FFD700" FontSize="13"
+                                       Margin="0,10,0,0"/>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10,0,0">
+                        <Button x:Name="btnStartQuiz" Content="Start Quiz"
+                                Click="BtnStartQuiz_Click" Background="#32CD32" FontSize="14"/>
+                        <TextBlock x:Name="txtQuizScore" Text="" Foreground="#00FFFF"
+                                   FontSize="14" FontWeight="Bold" VerticalAlignment="Center"
+                                   Margin="15,0,0,0"/>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+
+            <!-- ========== TAB 4: ACTIVITY LOG ========== -->
+            <TabItem Header="&#x1F4DD; Activity Log" Style="{StaticResource TabHeaderStyle}">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Text="Recent Activity" Style="{StaticResource SectionHeader}"/>
+
+                    <ListView x:Name="lstActivityLog" Grid.Row="1"
+                              Background="#16213E" Foreground="#E0E0E0"
+                              BorderThickness="1" BorderBrush="#0F3460"
+                              FontSize="13">
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn Header="Timestamp" Width="160"
+                                                DisplayMemberBinding="{Binding Timestamp, StringFormat={}{0:yyyy-MM-dd HH:mm}}"/>
+                                <GridViewColumn Header="Description" Width="500"
+                                                DisplayMemberBinding="{Binding Description}"/>
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10,0,0">
+                        <Button x:Name="btnRefreshLog" Content="Refresh"
+                                Click="BtnRefreshLog_Click" Background="#1E90FF"/>
+                        <Button x:Name="btnShowMoreLog" Content="Show All"
+                                Click="BtnShowMoreLog_Click" Background="#FF8C00"/>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+        </TabControl>
     </Grid>
 </Window>
