@@ -5,23 +5,30 @@ using CyberAwarenessBot.Gui.Services;
 
 namespace CyberAwarenessBot.Gui
 {
+    /// <summary>
+    /// Main application window for the Cybersecurity Awareness Bot GUI.
+    /// Manages the chat interface, user input, and coordinates voice/ASCII/chat services.
+    /// </summary>
     public partial class MainWindow : Window
     {
         private string _userName = string.Empty;
         private bool _waitingForName = true;
         private ChatService? _chatService;
 
+        /// <summary>Initialises the window and its XAML components.</summary>
         public MainWindow()
         {
             InitializeComponent();
         }
 
+        /// <summary>
+        /// Handles the window Loaded event: displays the ASCII logo, plays the voice greeting,
+        /// shows the welcome message, and enables the input controls.
+        /// </summary>
         private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            // Show ASCII logo
             txtAsciiLogo.Text = AsciiArt.Logo;
 
-            // Play voice greeting
             var greeting = new VoiceGreeting();
             try
             {
@@ -32,13 +39,11 @@ namespace CyberAwarenessBot.Gui
                 AppendToChat("Bot: (Voice greeting unavailable)");
             }
 
-            // Welcome text
             AppendToChat("Bot: Welcome! I am your Cybersecurity Awareness Assistant.");
             AppendToChat("Bot: To begin, please tell me your name.");
 
             _waitingForName = true;
 
-            // Enable input controls now that the welcome sequence is complete
             txtUserInput.IsEnabled = true;
             btnSend.IsEnabled = true;
         }
@@ -54,6 +59,10 @@ namespace CyberAwarenessBot.Gui
                 ProcessInput();
         }
 
+        /// <summary>
+        /// Reads the user's input, determines whether we are still awaiting a name
+        /// or in normal chat mode, and dispatches the response.
+        /// </summary>
         private void ProcessInput()
         {
             string input = txtUserInput.Text.Trim();
@@ -80,7 +89,6 @@ namespace CyberAwarenessBot.Gui
             }
             catch (Exception ex)
             {
-                // Log the real error for debugging, but show a friendly message to the user
                 System.Diagnostics.Debug.WriteLine($"Chat error: {ex}");
                 AppendToChat("Bot: Oops! Something went wrong. Please try again.");
             }
@@ -88,6 +96,8 @@ namespace CyberAwarenessBot.Gui
             txtUserInput.Clear();
         }
 
+        /// <summary>Appends a message to the chat display and auto-scrolls to the bottom.</summary>
+        /// <param name="message">The message text to display.</param>
         public void AppendToChat(string message)
         {
             txtChatDisplay.AppendText(message + Environment.NewLine);
