@@ -222,8 +222,8 @@ namespace CyberAwarenessBot.Gui.Services
                 return $"Your cybersecurity tasks:\n{string.Join("\n", lines)}\n\nUse 'complete task <id>' or 'delete task <id>' to manage them.";
             }
 
-            var addMatch = Regex.Match(lower, @"^add\s+task\s*:?\s*(.+?)(?:[,;]\s*remind\s+(?:me\s+)?(?:in|on)\s+(.+))?$");
-            if (addMatch.Success || lower.StartsWith("add task"))
+            var addMatch = Regex.Match(lower, @"^(?:add|create|set)\s+(?:a\s+|new\s+)?task\s*:?\s*(.+?)(?:[,;]\s*remind\s+(?:me\s+)?(?:in|on|for)\s+(.+))?$");
+            if (addMatch.Success || lower.StartsWith("add task") || lower.StartsWith("add a task") || lower.StartsWith("create task") || lower.StartsWith("new task"))
             {
                 string title;
                 string? reminderText = null;
@@ -265,7 +265,7 @@ namespace CyberAwarenessBot.Gui.Services
                 return response;
             }
 
-            var remindMatch = Regex.Match(lower, @"^remind\s+(?:me\s+)?(?:in|on)\s+(.+?)(?:\s+to\s+(.+))?$");
+            var remindMatch = Regex.Match(lower, @"^(?:(?:set|create)\s+(?:a\s+)?)?remind(?:er)?\s+(?:me\s+)?(?:in|on|for)\s+(.+?)(?:\s+to\s+(.+))?$");
             if (remindMatch.Success)
             {
                 var tasks = _db.GetAllTasks().Where(t => !t.IsCompleted).ToList();
@@ -348,6 +348,9 @@ namespace CyberAwarenessBot.Gui.Services
         private int ParseDays(string text)
         {
             text = text.ToLower().Trim();
+            if (text.Contains("tomorrow")) return 1;
+            if (text.Contains("today")) return 0;
+
             var match = Regex.Match(text, @"(\d+)");
             if (!match.Success) return 7;
 
