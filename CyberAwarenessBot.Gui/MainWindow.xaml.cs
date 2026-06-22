@@ -232,7 +232,7 @@ namespace CyberAwarenessBot.Gui
                 var q = quiz.Start();
 
                 if (_chatService != null)
-                    _chatService.GetType().GetField("ActiveQuiz", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public)?.SetValue(_chatService, quiz);
+                    _chatService.ActiveQuiz = quiz;
 
                 _log.Add("Quiz started from Quiz tab");
                 DisplayQuizQuestion(quiz, q);
@@ -271,7 +271,7 @@ namespace CyberAwarenessBot.Gui
                     btnStartQuiz.Content = "Start Quiz";
 
                     if (_chatService != null)
-                        _chatService.GetType().GetField("ActiveQuiz", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public)?.SetValue(_chatService, null);
+                        _chatService.ActiveQuiz = null;
 
                     AppendToChat($"Bot: Quiz completed! Score: {quiz.Score}/{quiz.TotalQuestions}. {quiz.GetScoreMessage()}");
                 }

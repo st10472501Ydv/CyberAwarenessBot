@@ -16,7 +16,7 @@ namespace CyberAwarenessBot.Gui.Services
         private string _lastTopic = "";
         private string _favouriteTopic = "";
 
-        public QuizGame? ActiveQuiz { get; private set; }
+        public QuizGame? ActiveQuiz { get; set; }
 
         public ChatService(string userName, DatabaseService db, ActivityLog log)
         {
